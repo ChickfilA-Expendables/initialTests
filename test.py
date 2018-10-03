@@ -1,51 +1,28 @@
-import picamera
-import cv2
-import argparse
-import imutils
+import cv2.cv as cv
 
-camera = picamera.PiCamera()
-camera.capture('image.jpg')
+orig = cv.LoadImage('../trainingData/frames/frame0.jpg', cv.CV_LOAD_IMAGE_COLOR)
+im = cv.CreateImage(cv.GetSize(orig), 8, 1)
+cv.CvtColor(orig, im, cv.CV_BGR2GRAY)
+#Keep the original in colour to draw contours in the end
 
-class ShapeDetector:
-  def __init__(self):
-    pass
-  def detect(self, c):
-    shape = "unidentified"
-    peri = cv2.arcLength(c,True)
-    approx = cv2.approxPolyDP(c, .04*peri, True)
-    if len(approx) == 3:
-      shape = "triangle"
-    elif len(approx) == 4:
-      (x, y, w, h) = cv2.boundingRect(approx)
-      ar = w / float(h)
-      shape = "square" if ar >= 0.95 and ar <= 1.05 else "rectangle"
-    elif len(approx) == 5:
-      shape = "pentagon"
-    else:
-      shape = "circle"
-    return shape
+cv.Threshold(im, im, 128, 255, cv.CV_THRESH_BINARY)
+cv.ShowImage("Threshold 1", im)
 
-# construct the argument parse and parse the arguments
-ap = argparse.ArgumentParser()
-ap.add_argument("-i", "--image", required=True,
-	help="path to the input image")
-args = vars(ap.parse_args())
+element = cv.CreateStructuringElementEx(5*2+1, 5*2+1, 5, 5, cv.CV_SHAPE_RECT)
 
-# load the image and resize it to a smaller factor so that
-# the shapes can be approximated better
-image = cv2.imread(args["image"])
-resized = imutils.resize(image, width=300)
-ratio = image.shape[0] / float(resized.shape[0])
+cv.MorphologyEx(im, im, None, element, cv.CV_MOP_OPEN) #Open and close to make appear contours
+cv.MorphologyEx(im, im, None, element, cv.CV_MOP_CLOSE)
+cv.Threshold(im, im, 128, 255, cv.CV_THRESH_BINARY_INV)
+cv.ShowImage("After MorphologyEx", im)
+# --------------------------------
 
-# convert the resized image to grayscale, blur it slightly,
-# and threshold it
-gray = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
-blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-thresh = cv2.threshold(blurred, 60, 255, cv2.THRESH_BINARY)[1]
+vals = cv.CloneImage(im) #Make a clone because FindContours can modify the image
+contours=cv.FindContours(vals, cv.CreateMemStorage(0), cv.CV_RETR_LIST, cv.CV_CHAIN_APPROX_SIMPLE, (0,0))
 
-# find contours in the thresholded image and initialize the
-# shape detector
-cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
-	cv2.CHAIN_APPROX_SIMPLE)
-cnts = cnts[0] if imutils.is_cv2() else cnts[1]
-sd = ShapeDetector()
+_red = (0, 0, 255); #Red for external contours
+_green = (0, 255, 0);# Gren internal contours
+levels=1 #1 contours drawn, 2 internal contours as well, 3 ...
+cv.DrawContours (orig, contours, _red, _green, levels, 2, cv.CV_FILLED) #Draw contours on the colour image
+
+cv.ShowImage("Image", orig)
+cv.WaitKey(0)
