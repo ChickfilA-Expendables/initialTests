@@ -36,17 +36,21 @@ t = range(0,x)
 y_red = []
 y_blue = []
 y_green = []
-
+avg = []
+sample_r = res[300][400] #res[x/2][y/2]
+print sample_r
 for i in range(x):
-  #avg = (res[i][y/2][0] + res[i][y/2][1] + res[i][y/2][2])/3
+  avg.append(int(res[i][400][0]*float(sample_r[0])/float(255) + res[i][400][1]*float(sample_r[1])/float(255) + res[i][400][2]*float(sample_r[2])/float(255)))
   y_red.append(res[i][400][0])
   y_green.append(res[i][400][1])
   y_blue.append(res[i][400][2])
 
+#for i in range(x):
+  #print (y_red[i] * sample_r[0]/255) #+ y_green[i] * sample_r[1]/255 + y_blue[i] * sample_r[2]/255)
 
 container = 0.0
 break_condition = 0
-for i in y_red:
+for i in avg:
   if (i != 0):
     container = container + 1
   else:
@@ -55,22 +59,24 @@ for i in y_red:
     break
 maxValue = 0.0
 for i in t:
-  if (y_red[i] > maxValue):
+  if (avg[i] > maxValue):
     maxValue = i
 percant = maxValue / container * 100
-percant = 100 - percant
+#percant = 100 - percant
 if (percant > 100):
   percant = 0
 
 print "lemonade level = ",percant
 print "container length = ",container
 
+#plt.figure(2)
+#plt.plot(t,y_red)
+#plt.figure(3)
+#plt.plot(t,y_green)
+#plt.figure(4)
+#plt.plot(t,y_blue)
 plt.figure(2)
-plt.plot(t,y_red)
-plt.figure(3)
-plt.plot(t,y_green)
-plt.figure(4)
-plt.plot(t,y_blue)
+plt.plot(t,avg)
 plt.show()
 
 #canny = cv2.Canny(res, 100, 200)
