@@ -2,9 +2,13 @@ import cv2
 import numpy as np
 import math
 import matplotlib.pyplot as plt
+import picamera
 
-img = cv2.imread('../trainingData/frames/frame0.jpg')
-#img = cv2.imread('image.jpg')
+camera = picamera.PiCamera()
+camera.capture('image.jpg')
+#img = cv2.imread('../trainingData/frames/frame0.jpg')
+img = cv2.imread('image.jpg')
+
 # Prepocess
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 flag, thresh = cv2.threshold(gray, 120, 255, cv2.THRESH_BINARY)
@@ -37,13 +41,13 @@ y_red = []
 y_blue = []
 y_green = []
 avg = []
-sample_r = res[300][400] #res[x/2][y/2]
+sample_r = res[x/2][y/2]
 print sample_r
 for i in range(x):
-  avg.append(int(res[i][400][0]*float(sample_r[0])/float(255) + res[i][400][1]*float(sample_r[1])/float(255) + res[i][400][2]*float(sample_r[2])/float(255)))
-  y_red.append(res[i][400][0])
-  y_green.append(res[i][400][1])
-  y_blue.append(res[i][400][2])
+  avg.append(int(res[i][y/2][0]*(1-float(sample_r[0])/float(255)) + res[i][y/2][1]*(1-float(sample_r[1])/float(255)) + res[i][y/2][2]*(1-float(sample_r[2])/float(255))))
+  y_red.append(res[i][y/2][0])
+  y_green.append(res[i][y/2][1])
+  y_blue.append(res[i][y/2][2])
 
 #for i in range(x):
   #print (y_red[i] * sample_r[0]/255) #+ y_green[i] * sample_r[1]/255 + y_blue[i] * sample_r[2]/255)
@@ -61,6 +65,7 @@ maxValue = 0.0
 for i in t:
   if (avg[i] > maxValue):
     maxValue = i
+print maxValue
 percant = maxValue / container * 100
 #percant = 100 - percant
 if (percant > 100):
@@ -69,13 +74,13 @@ if (percant > 100):
 print "lemonade level = ",percant
 print "container length = ",container
 
-#plt.figure(2)
-#plt.plot(t,y_red)
-#plt.figure(3)
-#plt.plot(t,y_green)
-#plt.figure(4)
-#plt.plot(t,y_blue)
 plt.figure(2)
+plt.plot(t,y_red)
+plt.figure(3)
+plt.plot(t,y_green)
+plt.figure(4)
+plt.plot(t,y_blue)
+plt.figure(5)
 plt.plot(t,avg)
 plt.show()
 

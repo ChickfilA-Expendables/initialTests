@@ -1,5 +1,6 @@
 import picamera
+import sys
 
 camera = picamera.PiCamera()
-camera.capture('image.jpg')
+camera.capture('pictures/image6.jpg')
 
