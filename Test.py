@@ -4,9 +4,6 @@ import math
 import matplotlib.pyplot as plt
 import picamera
 import requests as req
-import sys
-import time
-import matplotlib.animation as animation
 
 lemonadeURL = 'https://young-anchorage-97125.herokuapp.com/data/1.json'
 ketchupURL = 'https://young-anchorage-97125.herokuapp.com/data/3.json'
@@ -60,7 +57,6 @@ def calculateLevel(res):
   y_green = []
   avg = []
   diff = []
-  sample_r = res[x/2][y/2]
   level_r = 0
   level_g = 0
   level_b = 0
@@ -83,7 +79,6 @@ def calculateLevel(res):
       level_g += 1
     if (blue < 5):
       level_b += 1
-    #avg.append(int(res[i][y/2][0]*(1-float(sample_r[0])/float(255)) + res[i][y/2][1]*(1-float(sample_r[1])/float(255)) + res[i][y/2][2]*(1-float(sample_r[2])/float(255))))
     y_red.append(res[i][y/2][0])
     y_green.append(res[i][y/2][1])
     y_blue.append(res[i][y/2][2])
@@ -103,28 +98,59 @@ def calculateLevel(res):
   return [level_r, level_g, level_b, level_diff, percant]
 
 
-
 camera = picamera.PiCamera()
-def takePicture():
-  camera.capture('image.jpg')
-  img = cv2.imread('image.jpg')
+def takePicture1():
+  camera.capture('image1.jpg')
+  img = cv2.imread('image1.jpg')
   out = contours(img)
+  global calc
   calc = calculateLevel(out)
   print calc
   return out
 
-#img = cv2.imread('pictures/image4.jpg')
+def takePicture2():
+  camera.capture('image2.jpg')
+  img = cv2.imread('image2.jpg')
+  return img
+
+def getSample(img):
+  x = img.shape[0]
+  y = img.shape[1]
+  global sample_r
+  sample_r = img[x/2][y/2]
 
 
-#print calc
 
-f = plt.subplot(1,2,1)
-im = f.imshow(takePicture())
+
+img1 = takePicture2()
+getSample(img1)
+print sample_r
+img2 = takePicture1()
+
+f1 = plt.subplot(1,2,1)
+f2 = plt.subplot(1,2,2)
+
+im1 = f1.imshow(img1)
+im2 = f2.imshow(img2)
 
 plt.ion()
 
+counter = 0
+avg = 0
+
 while True:
-  im.set_data(takePicture())
+  counter += 1
+  im1.set_data(takePicture2())
+  im2.set_data(takePicture1())
+  avg = (avg+calc[4]) / counter
+  if (counter > 5):
+    if (avg > 100):
+      avg = 100
+    if (avg < 0):
+      avg = 0
+    expendableData('lemonade', avg)
+    counter = 0
+    avg = 0
   plt.pause(2)
 
 plt.ioff()
@@ -165,6 +191,5 @@ plt.show()
 #plt.figure(5)
 #plt.plot(t,y_red)
 #plt.show()
-#expendableData('lemonade', 65)
 #canny = cv2.Canny(res, 100, 200)
 #cv2.imwrite("canny.bmp", canny)
