@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import picamera
 import requests as req
 import sys
+import time
+import matplotlib.animation as animation
 
 lemonadeURL = 'https://young-anchorage-97125.herokuapp.com/data/1.json'
 ketchupURL = 'https://young-anchorage-97125.herokuapp.com/data/3.json'
@@ -95,17 +97,39 @@ def calculateLevel(res):
       break_condition = break_condition + 1
     if (break_condition > 5):
       break
+  if (container == 0):
+    container = 1
   percant = level_diff / container * 100
   return [level_r, level_g, level_b, level_diff, percant]
 
 
-img = cv2.imread('pictures/image4.jpg')
-out = contours(img)
-calc = calculateLevel(out)
-print calc
 
-#camera = picamera.PiCamera()
-#camera.capture('image.jpg')
+camera = picamera.PiCamera()
+def takePicture():
+  camera.capture('image.jpg')
+  img = cv2.imread('image.jpg')
+  out = contours(img)
+  calc = calculateLevel(out)
+  print calc
+  return out
+
+#img = cv2.imread('pictures/image4.jpg')
+
+
+#print calc
+
+f = plt.subplot(1,2,1)
+im = f.imshow(takePicture())
+
+plt.ion()
+
+while True:
+  im.set_data(takePicture())
+  plt.pause(2)
+
+plt.ioff()
+plt.show()
+
 #img = cv2.imread('../trainingData/frames/frame0.jpg')
 
 #plt.figure(1)
